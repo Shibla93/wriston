@@ -1,0 +1,315 @@
+
+<%- include("../../views/partials/admin/header") %>
+
+<head>
+   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/cropperjs/dist/cropper.min.css">
+</head>
+
+<!DOCTYPE html>
+<html lang="ml">
+<head>
+  <meta charset="UTF-8">
+  <title>Edit Product</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/cropperjs/dist/cropper.min.css">
+  <style>
+    .error-message { color: red; }
+    .thumbnails-container { display: flex; overflow-x: auto; margin-bottom: 10px; }
+    .thumbnail { margin-right: 10px; position: relative; }
+    .remove-icon { position: absolute; top: 0; right: 0; cursor: pointer; color: red; }
+  </style>
+</head>
+<body>
+<section class="content-main">
+  <div class="row">
+    <div class="col-9">
+      <div class="content-header">
+        <h2 class="content-title">Edit Product</h2>
+      </div>
+    </div>
+    <div class="col-lg-6">
+      <div class="card mb-4">
+        <div class="card-body">
+         
+            
+            <!-- Product Name -->
+            <div class="mb-4">
+              <label class="form-label">Product Name</label>
+              <input type="text" name="productName" class="form-control border" id="product_name" placeholder="Type here">
+           <form method="POST" action="/admin/editProduct?id=<%= product._id %>" enctype="multipart/form-data" id="productForm" onsubmit="return validateForm()">
+   <div id="productName-error" class="error-message"></div>
+            </div>
+
+            <!-- Brand -->
+            <div class="col-lg-4 mb-4">
+              <label class="form-label">Brand</label>
+              <select class="form-select border" name="brand">
+        
+                  <option value="<%= brand[i].brandName %>"><%= brand[i].brandName %></option>
+
+              </select>
+              <div id="brand-error" class="error-message"></div>
+            </div>
+
+            <!-- Description -->
+            <div class="mb-4">
+              <label class="form-label">Full description</label>
+              <textarea name="description" value="<%=product.decription%>"class="form-control border" rows="4" id="descriptionid" placeholder="Type here"></textarea>
+              <div id="description-error" class="error-message"></div>
+            </div>
+
+            <!-- Price & Quantity -->
+            <div class="row">
+              <div class="col-lg-4 mb-4">
+                <label class="form-label">Regular price</label>
+                <input name="regularPrice" type="text" class="form-control border" placeholder="$" value="<%=product.regularPrice%>">
+                <div id="regularPrice-error" class="error-message"></div>
+              </div>
+              <div class="col-lg-4 mb-4">
+                <label class="form-label">Sale price</label>
+                <input name="salePrice" type="text" value="<%=product.salePrice%>"class="form-control border" placeholder="$">
+                <div id="salePrice-error" class="error-message"></div>
+              </div>
+              <div class="col-lg-4 mb-4">
+                <label class="form-label">Quantity</label>
+                <input name="quantity" type="text" class="form-control border" value="<%=product.quantity%>">
+                <div id="quantity-error" class="error-message"></div>
+              </div>
+            </div>
+
+            <!-- Strap Material -->
+            <div class="row">
+              <div class="col-lg-4 mb-4">
+                <label class="form-label">Strap Material</label>
+                <input name="strapMaterial" type="text" class="form-control border" value="<%=product.strapMaterial%>">
+                <div id="strap-error" class="error-message"></div>
+              </div>
+            </div>
+
+            <!-- Color -->
+            <div class="row">
+              <div class="col-lg-4 mb-4">
+                <label class="form-label">Color</label>
+                <input name="color" type="text" value="<%=product.color%>"class="form-control border">
+                <div id="color-error" class="error-message"></div>
+              </div>
+            </div>
+
+            <!-- Category -->
+            <div class="card mb-4">
+              <div class="card-body">
+                <div class="row gx-2">
+                  <div class="col-sm-6 mb-3">
+                    <label class="form-label">Category</label>
+                    <select class="form-select border" name="category" style="width: 150px;">
+                      <% for (let i = 0; i < cat.length; i++) { %>
+                        <option value="<%= cat[i].name %>"><%= cat[i].name %></option>
+                      <% } %>
+                    </select>
+                    <div id="category-error" class="error-message"></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Image Upload -->
+            <div class="card mb-2">
+  <div class="card-header"><h4>Choose images (up to 4)</h4></div>
+
+  <% for (let i = 1; i <= 4; i++) { %>
+    <div class="row mb-3">
+      <div class="card-body align-items-center">
+        <img src="" alt="" id="imgView<%= i %>" style="max-width:100%; display:none;">
+        <!-- ✅ Name as array, ✅ Unique ID -->
+        <input class="form-control" type="file" name="images" id="input<%= i %>" accept="image/*">
+
+      </div>
+      <div class="image-cropper d-flex align-items-center" style="display:none; width: 300px; height: 200px; margin-bottom: 20px;">
+        <img src="" id="croppedImg<%= i %>" alt="">
+        <button type="button" id="saveButton<%= i %>" class="btn-sm btn-primary">Save</button>
+      </div>
+    </div>
+  <% } %>
+
+  <div id="images-error" class="error-message"></div>
+  <!-- Add this inside your form, where you want image thumbnails to show -->
+<div id="addedImagesContainer" class="thumbnails-container"></div> 
+
+</div>
+
+            <!-- Submit -->
+            <div>
+              <button type="submit">update</button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+<script src="https://cdn.jsdelivr.net/npm/cropperjs@1.5.13/dist/cropper.min.js"></script>
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+  let selectedImages = [];
+
+  // Loop to setup 4 image inputs and related crop logic
+  for (let i = 1; i <= 4; i++) {
+    const inputEl = document.getElementById("input" + i);
+    const saveBtn = document.getElementById("saveButton" + i);
+    const imgView = document.getElementById("imgView" + i);
+    const cropperContainer = saveBtn?.parentNode;
+
+    if (inputEl) {
+      inputEl.addEventListener("change", function(event) {
+        viewImage(event, i);
+        handleFileSelect(event);
+      });
+    }
+
+    if (saveBtn && imgView) {
+      saveBtn.addEventListener("click", function () {
+        const cropper = imgView.cropperInstance;
+        if (!cropper) return;
+        const canvas = cropper.getCroppedCanvas();
+        const croppedImgEl = document.getElementById("croppedImg" + i);
+        croppedImgEl.src = canvas.toDataURL('image/jpeg', 1.0);
+
+        canvas.toBlob(blob => {
+          let fileName = `cropped-img-${Date.now()}-${i}.png`;
+          const imageFile = new File([blob], fileName, { type: 'image/png' });
+          const dt = new DataTransfer();
+          dt.items.add(imageFile);
+          const inp = document.getElementById("input" + i);
+          if (inp) inp.files = dt.files;
+        });
+
+        cropper.destroy();
+        cropperContainer.style.display = "none";
+      });
+    }
+  }
+
+  const form = document.getElementById("productForm");
+  if (form) {
+    form.addEventListener("submit", function (e) {
+      // If needed, you can validate or use preventDefault here.
+    });
+  }
+});
+
+// Helper function to preview & crop image
+function viewImage(event, index) {
+  const file = event.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    const img = document.getElementById("imgView" + index);
+    img.src = e.target.result;
+    img.style.display = "block";
+
+    const cropper = new Cropper(img, {
+      aspectRatio: 1,
+      viewMode: 1,
+      guides: true,
+      background: false,
+      autoCropArea: 1,
+      zoomable: true
+    });
+    img.cropperInstance = cropper;
+
+    const container = document.getElementById("saveButton" + index).parentNode;
+    container.style.display = "flex";
+  };
+  reader.readAsDataURL(file);
+}
+
+// Handle thumbnail previews and removal
+function handleFileSelect(event) {
+  const container = document.getElementById("addedImagesContainer");
+  container.innerHTML = "";
+  selectedImages = [];
+  const files = event.target.files;
+  Array.from(files).forEach(file => {
+    selectedImages.push(file);
+    const div = document.createElement("div");
+    div.className = "thumbnail";
+
+    const img = document.createElement("img");
+    img.src = URL.createObjectURL(file);
+    img.style.width = "50px";
+    img.style.height = "auto";
+
+    const removeIcon = document.createElement("span");
+    removeIcon.className = "remove-icon";
+    removeIcon.innerHTML = "&times;";
+    removeIcon.onclick = () => {
+      const idx = selectedImages.indexOf(file);
+      if (idx > -1) selectedImages.splice(idx, 1);
+      div.remove();
+    };
+
+    div.append(img, removeIcon);
+    container.appendChild(div);
+  });
+}
+
+// Error message utilities
+function displayErrorMessage(id, msg) {
+  const el = document.getElementById(id);
+  if (el) el.innerText = msg;
+}
+
+function clearErrorMessages() {
+  document.querySelectorAll('.error-message').forEach(el => el.innerText = "");
+}
+
+// Final form validation before submission
+function validateForm() {
+  clearErrorMessages();
+  let valid = true;
+  const name = document.getElementsByName('productName')[0]?.value.trim() || "";
+  const desc = document.getElementById('descriptionid')?.value.trim() || "";
+  const quant = document.getElementsByName('quantity')[0]?.value.trim() || "";
+  const price = document.getElementsByName('regularPrice')[0]?.value.trim() || "";
+  const sale = document.getElementsByName('salePrice')[0]?.value.trim() || "";
+  const strap = document.getElementsByName('strapMaterial')[0]?.value.trim() || "";
+  const color = document.getElementsByName('color')[0]?.value.trim() || "";
+  const cat = document.getElementsByName('category')[0]?.value.trim() || "";
+  const totalImages = selectedImages.length;
+
+  if (!name) { displayErrorMessage('productName-error', 'Please enter product name.'); valid = false; }
+  if (!desc) { displayErrorMessage('description-error', 'Please enter description.'); valid = false; }
+  if (quant === "" || parseInt(quant) < 0) { displayErrorMessage('quantity-error', 'Enter non-negative quantity.'); valid = false; }
+  if (!/^\d+(\.\d{1,2})?$/.test(price) || parseFloat(price) < 0) { displayErrorMessage('regularPrice-error', 'Invalid regular price.'); valid = false; }
+  if (!/^\d+(\.\d{1,2})?$/.test(sale) || parseFloat(sale) < 0) { displayErrorMessage('salePrice-error', 'Invalid sale price.'); valid = false; }
+  if (parseFloat(price) <= parseFloat(sale)) {
+    displayErrorMessage('regularPrice-error', 'Sale price must be less than regular price.');
+    valid = false;
+  }
+  if (!strap) { displayErrorMessage('strap-error', 'Please enter strap material.'); valid = false; }
+  if (!color) { displayErrorMessage('color-error', 'Please enter color.'); valid = false; }
+  if (!cat) { displayErrorMessage('category-error', 'Please select category.'); valid = false; }
+  if (totalImages === 0) { displayErrorMessage('images-error', 'Please select at least one image.'); valid = false; }
+
+  return valid;
+}
+
+function validateAndSubmit() {
+  if (validateForm()) {
+    document.forms[0].submit();
+  }
+}
+
+function deleteSingleImage(imageId,product){
+    $.ajax({
+        url:"/admin/deleteImage",
+        method:'post',
+        data:{imageNameToServer:imageId,productIdToServer:productId},
+        success:((response)=>{
+            if(reponse.status===true){
+                window.locatiion.reload()
+            }
+        })
+    })
+}
+</script>
+<%- include("../../views/partials/admin/footer") %>
