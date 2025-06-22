@@ -53,7 +53,7 @@ await User.updateOne({_id:id},{$set:{isBlocked:true}})
 res.redirect("/admin/users")
     }catch (error)
         {
-res.redirect("/pageerror")
+res.redirect("/pageError")
     }
 }
 const customerunBlocked= async (req,res)=>{
@@ -62,7 +62,7 @@ const customerunBlocked= async (req,res)=>{
         await User.updateOne({_id:id},{$set:{isBlocked:false}})
         res.redirect("/admin/users")
     }catch(error){
-        res.redirect("/pageerror")
+        res.redirect("/pageError")
     }
 } 
 

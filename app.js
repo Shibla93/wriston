@@ -15,16 +15,15 @@ app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
  
 app.use(session({
-  secret:process.env.SESSION_SECRET,
-  resave:false,
-saveUninitialized: false,
-
-  cookie:{
-    secure:false,
-    httpOnly:true,
-    maxAge:72*60*60*1000
+  secret: process.env.SESSION_SECRET,
+  resave: false,
+  saveUninitialized: false,
+  cookie: {
+    secure: process.env.NODE_ENV === 'production',
+    httpOnly: true,
+    maxAge: 72 * 60 * 60 * 1000
   }
-}))
+}));
 
 app.use(passport.initialize())
 app.use(passport.session())
@@ -33,10 +32,6 @@ app.use((req,res,next)=>{
   res.set('cache-control','no-store')
   next()
 })
-app.use((err, req, res, next) => {
-  console.error(err.stack);
-  res.status(500).render("admin/error", { message: err.message || "Server Error" });
-});
 
 
 app.set("view engine", "ejs");
