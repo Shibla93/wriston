@@ -43,7 +43,7 @@ const addProducts = async (req, res) => {
         const resizedImagePath = path.join(resizeDir, resizedFileName);
 
         await sharp(originalImagePath)
-          .resize({ width: 440, height: 440 })
+          .resize({ width: 600, height: 600 })
           .toFile(resizedImagePath);
 
         images.push("resize-image/" + resizedFileName);
@@ -64,7 +64,6 @@ const addProducts = async (req, res) => {
       category: categoryId._id,
       regularPrice: products.regularPrice,
       salePrice: products.salePrice,
-      createdOn: new Date(),
       quantity: products.quantity,
       strapMaterial: products.strapMaterial,
       color: products.color,
@@ -75,6 +74,15 @@ const addProducts = async (req, res) => {
 
     await newProduct.save();
     console.log("Product saved successfully with images:", images);
+    const cat = await Category.find({ isListed: true });
+const brand = await Brand.find({ isBlocked: false });
+
+return res.render("admin/product-add", {
+  brand,
+  cat,
+  productAdded: true 
+});
+
 
   
   } catch (error) {
@@ -237,14 +245,29 @@ const editProduct = async (req, res) => {
         error: "Product with this name already exists. Please try another name"
       });
     }
+     const resizeDir = path.join("public", "uploads", "resize-image");
+    if (!fs.existsSync(resizeDir)) {
+      fs.mkdirSync(resizeDir, { recursive: true });
+    }
 
     const images = [];
     if (req.files && req.files.length > 0) {
       for (let i = 0; i < req.files.length; i++) {
-        images.push( req.files[i].filename);
+        const originalImagePath = req.files[i].path;
+        const resizedFileName = "resized-" + req.files[i].filename;
+        const resizedImagePath = path.join(resizeDir, resizedFileName);
+         await sharp(originalImagePath)
+          .resize({ width: 600, height: 600 })
+          .toFile(resizedImagePath);
+
+        images.push("resize-image/" + resizedFileName)
+
       }
     }
 
+   
+
+    
     const updateFields = {
       productName: data.productName,
       description: data.description,
@@ -257,9 +280,9 @@ const editProduct = async (req, res) => {
       quantity:data.quantity,
     };
 
-    if (req.files.length>0){
-      updateFields.$push={productImage:{$each:images}}
-    }
+   if (images.length > 0) {
+  updateFields.productImage = [...product.productImage, ...images];
+}
 
     await Product.findByIdAndUpdate(id, updateFields, { new: true });
     res.redirect("/admin/products");

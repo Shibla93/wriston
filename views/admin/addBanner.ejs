@@ -1,0 +1,283 @@
+<%- include("../../views/partials/admin/header") %>
+
+<head>
+  <link rel="stylesheet" href="https://unpkg.com/cropperjs@1.5.13/dist/cropper.min.css">
+
+</head>
+
+<style>
+  .error-message {
+    color: red;
+    margin-top: 5px;
+    font-size: 14px;
+  }
+  .card {
+    box-shadow: 0 2px 6px 0 rgb(218 218 253 / 65%), 0 2px 6px 0 rgb(206 206 238 / 54%);
+    border-radius: .25rem;
+    background-color: #fff;
+    margin-bottom: 1.5rem;
+  }
+  @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap');
+  body {
+    background: #B6DBF6;
+    font-family: 'Poppins', sans-serif;
+  }
+  .img-area {
+    position: relative;
+    width: 100%;
+    height: 240px;
+    background: #f2f2f2;
+    margin-bottom: 30px;
+    border-radius: 15px;
+    overflow: hidden;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+  }
+  .thumbnails-container {
+    display: flex;
+    overflow-x: auto;
+  }
+  .thumbnail {
+    margin-right: 10px;
+  }
+</style>
+
+<section class="content-main">
+  <div class="row">
+    <div class="col-9">
+      <div class="content-header">
+        <h2 class="content-title">Add New Banner</h2>
+      </div>
+    </div>
+    <div class="col-lg-6">
+      <div class="card mb-4">
+        <div class="card-body">
+          <form method="post" action="/admin/addBanner" enctype="multipart/form-data" onsubmit="return validateForm()">
+            <div class="mb-4">
+              <label class="form-label">Banner Title</label>
+              <input type="text" name="title" class="form-control border" id="product_name">
+              <div id="productName-error" class="error-message"></div>
+            </div>
+
+            <div class="mb-4">
+              <label class="form-label">Description</label>
+              <textarea name="description" id="description" class="form-control border" rows="4"></textarea>
+              <div id="description-error" class="error-message"></div>
+            </div>
+
+            <div class="mb-4">
+              <label class="form-label">Start Date</label>
+              <input type="date" name="startDate" class="form-control" id="startingDate" required />
+              <div id="error-start-date" class="error-message"></div>
+            </div>
+
+            <div class="mb-4">
+              <label class="form-label">End Date</label>
+              <input type="date" name="endDate" class="form-control" id="expiringDate" required />
+              <div id="error-end-date" class="error-message"></div>
+            </div>
+
+            <div class="mb-4">
+              <label class="form-label">Link</label>
+              <input type="text" name="link" class="form-control border">
+              <div id="link-error" class="error-message"></div>
+            </div>
+
+            <div class="card-header">
+              <h4>Choose Banner Image</h4>
+            </div>
+            <div class="border row">
+              <div id="addedImagesContainer" class="thumbnails-container"></div>
+            </div>
+            <div class="card-body">
+              <img src="/img/hero/hero-1.jpg" alt="" id="imgView1">
+              <input class="form-control" type="file" name="images" id="inputFile"
+                     accept="image/png, image/jpeg, image/jpg"
+                     onchange="viewImage1(event); viewImage(event, 1)">
+              <div id="image-error" class="error-message"></div>
+            </div>
+
+            <div class="image-cropper" style="display:none; width: 300px; height: 200px;">
+              <img src="" id="croppedImg1" alt="">
+              <button type="button" id="saveButton1" class="btn-sm btn-primary">Save</button>
+            </div>
+
+            <div>
+              <button class="btn btn-md rounded font-sm hover-up ml-200" type="button"
+                      onclick="validateAndSubmit()">Publish</button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<script src="https://unpkg.com/cropperjs@1.5.13/dist/cropper.min.js"></script>
+
+<script>
+  const selectedImages = [];
+
+  document.addEventListener("DOMContentLoaded", function () {
+    const inputFile = document.getElementById("inputFile");
+    if (inputFile) {
+      inputFile.addEventListener("change", handleFileSelect);
+    }
+  });
+
+  function handleFileSelect(event) {
+    const addedImagesContainer = document.getElementById("addedImagesContainer");
+    addedImagesContainer.innerHTML = "";
+    const files = event.target.files;
+
+    for (let i = 0; i < files.length; i++) {
+      const file = files[i];
+      selectedImages.push(file);
+      const thumbnail = document.createElement("div");
+      thumbnail.classList.add("thumbnail");
+
+      const img = document.createElement("img");
+      img.src = URL.createObjectURL(file);
+      img.alt = "thumbnail";
+      img.style.width = "60px";
+      img.style.height = "auto";
+
+      const removeIcon = document.createElement("span");
+      removeIcon.classList.add("remove-icon");
+      removeIcon.innerHTML = "&times;";
+      removeIcon.addEventListener("click", function () {
+        const index = selectedImages.indexOf(file);
+        if (index !== -1) selectedImages.splice(index, 1);
+        thumbnail.remove();
+      });
+
+      thumbnail.appendChild(img);
+      thumbnail.appendChild(removeIcon);
+      addedImagesContainer.appendChild(thumbnail);
+    }
+  }
+
+  window.viewImage1 = function (event) {
+    document.getElementById('imgView1').src = URL.createObjectURL(event.target.files[0]);
+  };
+
+  window.validateAndSubmit = function () {
+    if (validateForm()) {
+      document.forms[0].submit();
+    }
+  };
+
+  function validateForm() {
+    resetErrorMessages();
+    let isValid = true;
+
+    const productName = document.getElementById("product_name").value.trim();
+    const description = document.getElementById("description").value.trim();
+    if (!description) {
+  displayErrorMessage("description-error", "Description is required");
+  isValid = false;
+}
+    const link = document.getElementsByName("link")[0].value.trim();
+    const sDate = document.getElementsByName("startDate")[0].value;
+    const eDate = document.getElementsByName("endDate")[0].value;
+
+    if (!productName) {
+      displayErrorMessage("productName-error", "Product Name is required");
+      isValid = false;
+    }
+    if (!description) {
+      displayErrorMessage("description-error", "Description is required");
+      isValid = false;
+    }
+    if (!link) {
+      displayErrorMessage("link-error", "Link is required");
+      isValid = false;
+    }
+    if (!sDate) {
+      displayErrorMessage("error-start-date", "Start date is required");
+      isValid = false;
+    }
+    if (!eDate) {
+      displayErrorMessage("error-end-date", "End date is required");
+      isValid = false;
+    } else if (new Date(sDate) > new Date(eDate)) {
+      displayErrorMessage("error-end-date", "End date should be after start date");
+      isValid = false;
+    }
+
+    const imageFile = document.getElementById('inputFile');
+    const file = imageFile.files[0];
+    if (!file) {
+      displayErrorMessage("image-error", "Please upload an image");
+      isValid = false;
+    }
+
+    return isValid;
+  }
+
+  function displayErrorMessage(elementId, message) {
+    const errorElement = document.getElementById(elementId);
+    if (errorElement) {
+      errorElement.innerText = message;
+      errorElement.style.display = "block";
+    }
+  }
+
+  function resetErrorMessages() {
+    const errorElements = document.querySelectorAll(".error-message");
+    errorElements.forEach(el => {
+      el.innerText = "";
+      el.style.display = "none";
+    });
+  }
+
+  function viewImage(event, index) {
+    const input = event.target;
+    const reader = new FileReader();
+
+   reader.onload = function () {
+    const dataURL = reader.result;
+    const image = document.getElementById("imgView" + index);
+    
+    image.src = dataURL; // ⚠️ first set src
+    
+    image.onload = () => { // ✅ After setting src, THEN init Cropper
+        const cropper = new Cropper(image, { 
+            aspectRatio: 1360 / 777,
+            viewMode: 1,
+            autoCropArea: 0.8,
+            background: false,
+            zoomable: true
+        });
+
+        const cropperContainer = document.querySelector("#croppedImg" + index).parentNode;
+        cropperContainer.style.display = "block";
+
+        const saveButton = document.querySelector("#saveButton" + index);
+        saveButton.addEventListener("click", async function () {
+            const croppedCanvas = cropper.getCroppedCanvas();
+            const croppedImage = document.getElementById("croppedImg" + index);
+            croppedImage.src = croppedCanvas.toDataURL("image/jpeg", 1.0);
+
+            await croppedCanvas.toBlob(blob => {
+                const fileName = `cropped-${Date.now()}.jpg`;
+                const newFile = new File([blob], fileName, { type: "image/jpeg" });
+
+                const fileInput = document.getElementById("inputFile");
+                const dataTransfer = new DataTransfer();
+                dataTransfer.items.add(newFile);
+                fileInput.files = dataTransfer.files;
+            });
+
+            cropperContainer.style.display = "none";
+            cropper.destroy();
+        });
+    };
+};
+reader.readAsDataURL(input.files[0]);
+  }
+</script>
+
+<%- include("../../views/partials/admin/footer") %>

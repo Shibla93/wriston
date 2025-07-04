@@ -1,0 +1,224 @@
+<%- include("../partials/user/navbar") %>
+<!-- Slick Carousel CSS -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/slick-carousel@1.8.1/slick/slick.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/slick-carousel@1.8.1/slick/slick-theme.css">
+
+<style>
+  .zoom-image {
+    width: auto;
+    height:auto;
+    
+    position: relative;
+    --zoom-x: 0%;
+    --zoom-y: 0%;
+    --display: none;
+    --url: none;
+  }
+
+  .zoom-image img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border: 1px solid #ddd;
+  }
+
+  .zoom-image::after {
+    content: "";
+    display: var(--display);
+    width: 100%;
+    height: 100%;
+    background-image: var(--url);
+    background-repeat: no-repeat;
+    background-size: 200%;
+    background-position: var(--zoom-x) var(--zoom-y);
+    position: absolute;
+    left: 0;
+    top: 0;
+    z-index: 5;
+  }
+</style>
+<main class="main">
+  <div class="page-header breadcrumb-wrap">
+    <div class="container">
+      <div class="breadcrumb">
+        <a href="/" rel="nofollow">Home</a>
+        <span></span> Fashion
+        <span></span> Product Detail Page
+      </div>
+    </div>
+  </div>
+
+  <section class="mt-50 mb-50">
+    <div class="container">
+      <div class="row">
+        <div class="col-lg-9">
+          <div class="product-detail accordion-detail">
+            <div class="row mb-50">
+
+              <!-- Product Images -->
+              <div class="col-md-6 col-sm-12 col-xs-12">
+                <div class="detail-gallery">
+                  <span class="zoom-icon"><i class="fi-rs-search"></i></span>
+                  <div class="product-image-slider">
+  <% for (let i = 0; i < product.productImage.length; i++) { %>
+    <figure class="border-radius-10">
+      <div
+        class="zoom-image"
+        style="--url:url('/uploads/<%= product.productImage[i] %>'); --zoom-x:0%; --zoom-y:0%; --display:none;">
+        <img src="/uploads/<%= product.productImage[i] %>" alt="product image" />
+      </div>
+    </figure>
+  <% } %>
+</div>
+
+                  <!-- Thumbnails -->
+                  <div class="slider-nav-thumbnails pl-15 pr-15">
+                    <% for (let i = 0; i < product.productImage.length; i++) { %>
+                      <div>
+                        <img style="object-fit: contain;" src="/uploads/<%= product.productImage[i] %>" alt="thumbnail" />
+                      </div>
+                    <% } %>
+                  </div>
+                </div>
+              </div>
+            
+
+
+              <!-- Product Info -->
+              <div class="col-md-6 col-sm-12 col-xs-12">
+                <div class="detail-info">
+                  <h2 class="title-detail"><%= product.productName %></h2>
+                  
+                  <div class="product-detail-rating">
+                    <div class="pro-details-brand">
+                      <span>Brands: <a href="#"><%= product.brand %></a></span>
+                    </div>
+                    <div class="product-rate-cover text-end">
+                      <div class="product-rate d-inline-block">
+                        <div class="product-rating" style="width:90%"></div>
+                      </div>
+                      <span class="font-small ml-5 text-muted">(25 reviews)</span>
+                    </div>
+                  </div>
+
+                  <!-- Prices -->
+                  <div class="clearfix product-price-cover">
+                    <div class="product-price primary-color float-left">
+                      <ins><span class="text-brand">₹<%= product.salePrice %></span></ins>
+                      <ins><span class="old-price font-md ml-15">₹<%= product.regularPrice %></span></ins>
+                      <ins><span class="save-price font-md color3 ml-15"><%= product.strapMaterial %></span></ins>
+                      <span class="save-price font-md color3 ml-15">
+                        <% if (!totalOffer || totalOffer === 0) { %>No Offers<% } else { %><%= totalOffer %>% Offer<% } %>
+                      </span>
+                    </div>
+                  </div>
+
+                  <div class="bt-1 border-color-1 mt-15 mb-15"></div>
+
+                  <!-- Description -->
+                  <div class="short-desc mb-30">
+                    <p><%= product.description %></p>
+                  </div>
+
+                  <!-- Extra Info -->
+                  <div class="product_sort_info font-xs mb-30">
+                    <ul>
+                      <li class="mb-10"><i class="fi-rs-crown mr-5"></i> 1 Year Brand Warranty</li>
+                      <li class="mb-10"><i class="fi-rs-refresh mr-5"></i> 30 Day Return Policy</li>
+                      <li><i class="fi-rs-credit-card mr-5"></i> Cash on Delivery available</li>
+                    </ul>
+                  </div>
+
+                  <!-- Quantity & Cart -->
+                  <div class="bt-1 border-color-1 mt-30 mb-30"></div>
+                  <div class="detail-extralink">
+                    <div class="detail-qty border radius">
+                      <a href="#" class="qty-down"><i class="fi-rs-angle-small-down"></i></a>
+                      <span class="qty-val" id="quantity">1</span>
+                      <a href="#" class="qty-up"><i class="fi-rs-angle-small-up"></i></a>
+                    </div>
+                    <div class="product-extra-link2">
+                      <button type="submit" class="button button-add-to-cart">Add to cart</button>
+                      <a aria-label="Add To Wishlist" class="action-btn hover-up" href="#"><i class="fi-rs-heart"></i></a>
+                    </div>
+                  </div>
+
+                  <!-- Meta -->
+                  <ul class="product-meta font-xs color-grey mt-50">
+                    <li class="mb-5">Stock Code: <a href="#">FWM15VKT</a></li>
+                    <li class="mb-5">Tags: 
+                      <a href="#" rel="tag">WOMEN</a> 
+                      <a href="#" rel="tag"><%= category?.name || 'Fashion' %></a>
+                    </li>
+                    <li>Availability: 
+                      <span class="in-stock text-success ml-5"><%= quantity %> Items in Stock</span>
+                    </li>
+                  </ul>
+
+                </div>
+              </div>
+              <!-- End Info -->
+
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+</main>
+
+
+<!-- ✅ Correct JS order -->
+
+
+ <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/slick-carousel@1.8.1/slick/slick.min.js"></script>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-zoom/1.7.21/jquery.zoom.min.js"></script>
+<script>
+
+$(document).ready(function () {
+  console.log("jQuery loaded:", typeof $);
+  console.log("Slick loaded:", typeof $.fn.slick);
+  console.log("Zoom plugin loaded:", typeof $.fn.zoom);
+
+  // Initialize Slick
+  $(".product-image-slider").slick({
+    slidesToShow: 1,
+    slidesToScroll: 1,
+    arrows: true,
+    fade: true,
+    asNavFor: ".slider-nav-thumbnails"
+  });
+
+  $(".slider-nav-thumbnails").slick({
+    slidesToShow: 4,
+    slidesToScroll: 1,
+    asNavFor: ".product-image-slider",
+    focusOnSelect: true
+  });
+
+  // ✅ Zoom effect – inside document ready
+  const zoomImages = document.getElementsByClassName('zoom-image');
+
+  for (let box of zoomImages) {
+    box.addEventListener('mousemove', (e) => {
+      const x = (e.offsetX * 100) / box.offsetWidth;
+      const y = (e.offsetY * 100) / box.offsetHeight;
+
+      box.style.setProperty('--zoom-x', x + '%');
+      box.style.setProperty('--zoom-y', y + '%');
+      box.style.setProperty('--display', 'block');
+    });
+
+    box.addEventListener('mouseleave', () => {
+      box.style.setProperty('--display', 'none');
+    });
+  }
+});
+
+
+
+</script>
+
+<%- include("../partials/user/footer") %>
